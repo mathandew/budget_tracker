@@ -30,3 +30,14 @@ body {
 .card:hover {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 }
+
+canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 250px;
+}
+
+#lineChart {
+  max-width: 100%;
+  margin: auto;
+}

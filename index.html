@@ -1,107 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Budget Tracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body class="theme-light">
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>💰 Budget Tracker</h1>
-            <select id="themeSelect" class="form-select w-auto">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="blue">Blue</option>
-                <option value="solarized">Solarized</option>
-            </select>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Balance</h5>
-                        <h3 id="balance">PKR 0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-success text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Income</h5>
-                        <h3 id="income">PKR 0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-danger text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Expense</h5>
-                        <h3 id="expense">PKR 0</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <form class="my-4" id="transactionForm">
-            <div class="row g-2">
-                <div class="col-md-3">
-                    <input type="text" id="desc" class="form-control" placeholder="Description" required />
-                </div>
-                <div class="col-md-2">
-                    <input type="number" id="amount" class="form-control" placeholder="Amount" required />
-                </div>
-                <div class="col-md-2">
-                    <select id="type" class="form-select">
-                        <option value="income">Income</option>
-                        <option value="expense">Expense</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="text" id="category" class="form-control" placeholder="Category (optional)" />
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100" type="submit">Add</button>
-                </div>
-            </div>
-        </form>
-
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <select id="categoryFilter" class="form-select w-auto">
-                    <option value="all">All Categories</option>
-                </select>
-            </div>
-            <button class="btn btn-success" id="exportBtn">Export CSV</button>
-        </div>
-
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Type</th>
-                    <th>Category</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="transactionList"></tbody>
-        </table>
-
-        <div class="d-flex justify-content-center my-4">
-            <div style="max-width: 300px; width: 100%;">
-                <canvas id="chart"></canvas>
-            </div>
-        </div>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>💰 Budget Tracker</h1>
+      <select id="themeSelect" class="form-select w-auto">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="blue">Blue</option>
+        <option value="solarized">Solarized</option>
+      </select>
     </div>
 
-    <script src="app.js"></script>
-</body>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Balance</h5>
+            <h3 id="balance">PKR 0</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-success text-center">
+          <div class="card-body">
+            <h5 class="card-title">Income</h5>
+            <h3 id="income">PKR 0</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-danger text-center">
+          <div class="card-body">
+            <h5 class="card-title">Expense</h5>
+            <h3 id="expense">PKR 0</h3>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    <form class="my-4" id="transactionForm">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <input type="text" id="desc" class="form-control" placeholder="Description" required />
+        </div>
+        <div class="col-md-2">
+          <input type="number" id="amount" class="form-control" placeholder="Amount" required />
+        </div>
+        <div class="col-md-2">
+          <select id="type" class="form-select">
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="category" class="form-control" placeholder="Category (optional)" />
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100" type="submit">Add</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <select id="categoryFilter" class="form-select w-auto">
+          <option value="all">All Categories</option>
+        </select>
+      </div>
+      <button class="btn btn-success" id="exportBtn">Export CSV</button>
+    </div>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Type</th>
+          <th>Category</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="transactionList"></tbody>
+    </table>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="text-center my-4">
+          <h5>Income vs Expense</h5>
+          <div style="max-width: 300px; width: 100%; margin: auto;">
+            <canvas id="chart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="text-center my-4">
+          <h5>Transactions Over Time</h5>
+          <canvas id="lineChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
 </html>
