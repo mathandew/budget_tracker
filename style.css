@@ -8,6 +8,16 @@
   --text-color: #f8f9fa;
 }
 
+.theme-blue {
+  --bg-color: #dbeafe;
+  --text-color: #1e3a8a;
+}
+
+.theme-solarized {
+  --bg-color: #fdf6e3;
+  --text-color: #657b83;
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -19,4 +29,9 @@ body {
 
 .card:hover {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+canvas {
+  max-width: 100%;
+  height: auto !important;
 }

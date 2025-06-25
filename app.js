@@ -5,26 +5,39 @@ const transactionForm = document.getElementById("transactionForm");
 const descInput = document.getElementById("desc");
 const amountInput = document.getElementById("amount");
 const typeInput = document.getElementById("type");
+const categoryInput = document.getElementById("category");
 const transactionList = document.getElementById("transactionList");
-const themeToggle = document.getElementById("themeToggle");
+const categoryFilter = document.getElementById("categoryFilter");
+const themeSelect = document.getElementById("themeSelect");
+const exportBtn = document.getElementById("exportBtn");
+const chartCanvas = document.getElementById("chart");
 
 let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+let chartInstance = null;
 
+// Render UI
 function renderTransactions() {
   transactionList.innerHTML = "";
   let totalIncome = 0;
   let totalExpense = 0;
 
+  const selectedCategory = categoryFilter.value;
+  const categories = new Set(["all"]);
+
   transactions.forEach((txn, index) => {
+    if (selectedCategory !== "all" && txn.category !== selectedCategory) return;
+
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${txn.desc}</td>
       <td>PKR ${txn.amount}</td>
       <td>${txn.type}</td>
+      <td>${txn.category || "-"}</td>
       <td><button class="btn btn-sm btn-danger" onclick="deleteTransaction(${index})">Delete</button></td>
     `;
     transactionList.appendChild(row);
 
+    categories.add(txn.category);
     if (txn.type === "income") totalIncome += txn.amount;
     else totalExpense += txn.amount;
   });
@@ -32,31 +45,89 @@ function renderTransactions() {
   income.textContent = `PKR ${totalIncome}`;
   expense.textContent = `PKR ${totalExpense}`;
   balance.textContent = `PKR ${totalIncome - totalExpense}`;
+
+  // Update filter dropdown
+  categoryFilter.innerHTML = "";
+  categories.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat || "uncategorized";
+    option.textContent = cat ? cat : "Uncategorized";
+    categoryFilter.appendChild(option);
+  });
+
+  renderChart(totalIncome, totalExpense);
 }
 
+// Delete transaction
 function deleteTransaction(index) {
   transactions.splice(index, 1);
   localStorage.setItem("transactions", JSON.stringify(transactions));
   renderTransactions();
 }
 
+// Add transaction
 transactionForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const desc = descInput.value;
+  const desc = descInput.value.trim();
   const amount = parseFloat(amountInput.value);
   const type = typeInput.value;
-  if (!desc || !amount) return;
+  const category = categoryInput.value.trim() || "Uncategorized";
 
-  transactions.push({ desc, amount, type });
+  if (!desc || !amount || amount <= 0) return;
+
+  transactions.push({ desc, amount, type, category });
   localStorage.setItem("transactions", JSON.stringify(transactions));
-  descInput.value = "";
-  amountInput.value = "";
+  transactionForm.reset();
   renderTransactions();
 });
 
-themeToggle.addEventListener("click", () => {
-  document.body.classList.toggle("theme-dark");
-  document.body.classList.toggle("theme-light");
+// Theme switching
+themeSelect.addEventListener("change", () => {
+  document.body.className = "";
+  document.body.classList.add(`theme-${themeSelect.value}`);
 });
 
+// Export to CSV
+exportBtn.addEventListener("click", () => {
+  let csv = "Description,Amount,Type,Category\n";
+  transactions.forEach(txn => {
+    csv += `"${txn.desc}",${txn.amount},${txn.type},"${txn.category}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "budget_tracker.csv";
+  link.click();
+});
+
+// Filter by category
+categoryFilter.addEventListener("change", renderTransactions);
+
+// Chart.js pie chart
+function renderChart(incomeValue, expenseValue) {
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(chartCanvas, {
+    type: "doughnut",
+    data: {
+      labels: ["Income", "Expense"],
+      datasets: [{
+        data: [incomeValue, expenseValue],
+        backgroundColor: ["#198754", "#dc3545"],
+        borderColor: "#fff"
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "bottom"
+        }
+      }
+    }
+  });
+}
+
+// Initialize
 renderTransactions();
