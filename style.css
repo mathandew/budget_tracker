@@ -1,0 +1,22 @@
+:root {
+  --bg-color: #f8f9fa;
+  --text-color: #212529;
+}
+
+.theme-dark {
+  --bg-color: #212529;
+  --text-color: #f8f9fa;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.card {
+  transition: box-shadow 0.3s;
+}
+
+.card:hover {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
