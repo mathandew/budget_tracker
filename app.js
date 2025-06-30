@@ -17,12 +17,10 @@ let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
 let pieChart = null;
 let lineChart = null;
 
-// Utility to get today's date in YYYY-MM-DD
 function getTodayDate() {
   return new Date().toISOString().split("T")[0];
 }
 
-// Render transaction list and charts
 function renderTransactions() {
   transactionList.innerHTML = "";
   let totalIncome = 0;
@@ -52,7 +50,6 @@ function renderTransactions() {
   expense.textContent = `PKR ${totalExpense}`;
   balance.textContent = `PKR ${totalIncome - totalExpense}`;
 
-  // Update category dropdown
   categoryFilter.innerHTML = "";
   categories.forEach(cat => {
     const option = document.createElement("option");
@@ -63,16 +60,15 @@ function renderTransactions() {
 
   renderPieChart(totalIncome, totalExpense);
   renderLineChart(transactions);
+  updateMonthlySummary();
 }
 
-// Delete a transaction
 function deleteTransaction(index) {
   transactions.splice(index, 1);
   localStorage.setItem("transactions", JSON.stringify(transactions));
   renderTransactions();
 }
 
-// Add transaction
 transactionForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const desc = descInput.value.trim();
@@ -89,13 +85,11 @@ transactionForm.addEventListener("submit", (e) => {
   renderTransactions();
 });
 
-// Theme switcher
 themeSelect.addEventListener("change", () => {
   document.body.className = "";
   document.body.classList.add(`theme-${themeSelect.value}`);
 });
 
-// Export to CSV
 exportBtn.addEventListener("click", () => {
   let csv = "Description,Amount,Type,Category,Date\n";
   transactions.forEach(txn => {
@@ -109,10 +103,8 @@ exportBtn.addEventListener("click", () => {
   link.click();
 });
 
-// Filter by category
 categoryFilter.addEventListener("change", renderTransactions);
 
-// Render pie chart
 function renderPieChart(incomeValue, expenseValue) {
   if (pieChart) pieChart.destroy();
 
@@ -137,7 +129,6 @@ function renderPieChart(incomeValue, expenseValue) {
   });
 }
 
-// Render line chart (daily totals)
 function renderLineChart(data) {
   if (lineChart) lineChart.destroy();
 
@@ -183,5 +174,25 @@ function renderLineChart(data) {
   });
 }
 
-// Init
+function updateMonthlySummary() {
+  const now = new Date();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+
+  let monthIncome = 0;
+  let monthExpense = 0;
+
+  transactions.forEach(txn => {
+    const txnDate = new Date(txn.date);
+    if (txnDate.getMonth() === month && txnDate.getFullYear() === year) {
+      if (txn.type === "income") monthIncome += txn.amount;
+      else monthExpense += txn.amount;
+    }
+  });
+
+  const monthBalance = monthIncome - monthExpense;
+  document.getElementById("monthlySummary").textContent =
+    `This month's balance: PKR ${monthBalance} (Income: PKR ${monthIncome}, Expense: PKR ${monthExpense})`;
+}
+
 renderTransactions();

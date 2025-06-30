@@ -18,6 +18,16 @@
   --text-color: #657b83;
 }
 
+.theme-ocean {
+  --bg-color: #e0f7fa;
+  --text-color: #006064;
+}
+
+.theme-sunset {
+  --bg-color: #ffe0b2;
+  --text-color: #e65100;
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
