@@ -13,6 +13,10 @@ const exportBtn = document.getElementById("exportBtn");
 const chartCanvas = document.getElementById("chart");
 const lineCanvas = document.getElementById("lineChart");
 
+const currencySelect = document.getElementById("currencySelect");
+let currency = localStorage.getItem("currency") || "PKR";
+currencySelect.value = currency;
+
 let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
 let pieChart = null;
 let lineChart = null;
@@ -46,9 +50,9 @@ function renderTransactions() {
     else totalExpense += txn.amount;
   });
 
-  income.textContent = `PKR ${totalIncome}`;
-  expense.textContent = `PKR ${totalExpense}`;
-  balance.textContent = `PKR ${totalIncome - totalExpense}`;
+    income.textContent = `${currency} ${totalIncome}`;
+  expense.textContent = `${currency} ${totalExpense}`;
+  balance.textContent = `${currency} ${totalIncome - totalExpense}`;
 
   categoryFilter.innerHTML = "";
   categories.forEach(cat => {
@@ -61,6 +65,7 @@ function renderTransactions() {
   renderPieChart(totalIncome, totalExpense);
   renderLineChart(transactions);
   updateMonthlySummary();
+  
 }
 
 function deleteTransaction(index) {
@@ -191,8 +196,14 @@ function updateMonthlySummary() {
   });
 
   const monthBalance = monthIncome - monthExpense;
-  document.getElementById("monthlySummary").textContent =
-    `This month's balance: PKR ${monthBalance} (Income: PKR ${monthIncome}, Expense: PKR ${monthExpense})`;
+ document.getElementById("monthlySummary").textContent =
+  `This month's balance: ${currency} ${monthBalance} (Income: ${currency} ${monthIncome}, Expense: ${currency} ${monthExpense})`;
 }
+
+currencySelect.addEventListener("change", () => {
+  currency = currencySelect.value;
+  localStorage.setItem("currency", currency);
+  renderTransactions();
+});
 
 renderTransactions();
