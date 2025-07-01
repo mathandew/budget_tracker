@@ -68,7 +68,7 @@ function renderTransactions() {
   renderPieChart(totalIncome, totalExpense);
   renderLineChart(transactions);
   updateMonthlySummary();
-  
+  renderCategoryChart(transactions);
 }
 
 function deleteTransaction(index) {
@@ -193,8 +193,76 @@ function renderCategoryChart(data) {
     "Entertainment": "#f59f00",
     "Health": "#51cf66",
     "Shopping": "#845ef7"
-    // add more fixed colors as you like
   };
+
+let dynamicCategoryColors = JSON.parse(localStorage.getItem("dynamicCategoryColors")) || {};
+
+function renderCategoryChart(data) {
+  if (categoryChart) categoryChart.destroy();
+
+  const categoryTotals = {};
+  const baseColors = {
+    "Uncategorized": "#adb5bd",
+    "Food": "#ff6b6b",
+    "Transport": "#4dabf7",
+    "Entertainment": "#f59f00",
+    "Health": "#51cf66",
+    "Shopping": "#845ef7"
+  };
+
+  data.forEach(txn => {
+    if (txn.type === "expense") {
+      categoryTotals[txn.category] = (categoryTotals[txn.category] || 0) + txn.amount;
+      if (!baseColors[txn.category] && !dynamicCategoryColors[txn.category]) {
+
+        dynamicCategoryColors[txn.category] = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        localStorage.setItem("dynamicCategoryColors", JSON.stringify(dynamicCategoryColors));
+      }
+    }
+  });
+
+  const labels = Object.keys(categoryTotals);
+  const values = Object.values(categoryTotals);
+  const colors = labels.map(cat => baseColors[cat] || dynamicCategoryColors[cat]);
+
+  if (labels.length === 0) {
+    categoryChart = new Chart(categoryCanvas, {
+      type: "pie",
+      data: {
+        labels: ["No Expenses"],
+        datasets: [{
+          data: [1],
+          backgroundColor: ["#dee2e6"]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" }
+        }
+      }
+    });
+    return;
+  }
+
+  categoryChart = new Chart(categoryCanvas, {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom" }
+      }
+    }
+  });
+}
+
 
   data.forEach(txn => {
     if (txn.type === "expense") {
@@ -275,4 +343,3 @@ currencySelect.addEventListener("change", () => {
 });
 
 renderTransactions();
-renderCategoryChart(transactions);
