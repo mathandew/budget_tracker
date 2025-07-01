@@ -17,6 +17,9 @@ const currencySelect = document.getElementById("currencySelect");
 let currency = localStorage.getItem("currency") || "PKR";
 currencySelect.value = currency;
 
+const categoryCanvas = document.getElementById("categoryChart");
+let categoryChart = null;
+
 let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
 let pieChart = null;
 let lineChart = null;
@@ -179,6 +182,42 @@ function renderLineChart(data) {
   });
 }
 
+function renderCategoryChart(data) {
+  if (categoryChart) categoryChart.destroy();
+
+  const categoryTotals = {};
+
+  data.forEach(txn => {
+    if (txn.type === "expense") {
+      categoryTotals[txn.category] = (categoryTotals[txn.category] || 0) + txn.amount;
+    }
+  });
+
+  const labels = Object.keys(categoryTotals);
+  const values = Object.values(categoryTotals);
+  const colors = labels.map(() => `hsl(${Math.random() * 360}, 70%, 60%)`);
+
+  categoryChart = new Chart(categoryCanvas, {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "bottom"
+        }
+      }
+    }
+  });
+}
+
+
 function updateMonthlySummary() {
   const now = new Date();
   const month = now.getMonth();
@@ -207,3 +246,4 @@ currencySelect.addEventListener("change", () => {
 });
 
 renderTransactions();
+renderCategoryChart(transactions);
