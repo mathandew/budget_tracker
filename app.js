@@ -186,6 +186,15 @@ function renderCategoryChart(data) {
   if (categoryChart) categoryChart.destroy();
 
   const categoryTotals = {};
+  const categoryColors = {
+    "Uncategorized": "#adb5bd",
+    "Food": "#ff6b6b",
+    "Transport": "#4dabf7",
+    "Entertainment": "#f59f00",
+    "Health": "#51cf66",
+    "Shopping": "#845ef7"
+    // add more fixed colors as you like
+  };
 
   data.forEach(txn => {
     if (txn.type === "expense") {
@@ -195,7 +204,28 @@ function renderCategoryChart(data) {
 
   const labels = Object.keys(categoryTotals);
   const values = Object.values(categoryTotals);
-  const colors = labels.map(() => `hsl(${Math.random() * 360}, 70%, 60%)`);
+  const colors = labels.map(cat => categoryColors[cat] || `hsl(${Math.random() * 360}, 70%, 60%)`);
+
+  if (labels.length === 0) {
+    // No expenses — show empty chart
+    categoryChart = new Chart(categoryCanvas, {
+      type: "pie",
+      data: {
+        labels: ["No Expenses"],
+        datasets: [{
+          data: [1],
+          backgroundColor: ["#dee2e6"]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" }
+        }
+      }
+    });
+    return;
+  }
 
   categoryChart = new Chart(categoryCanvas, {
     type: "pie",
@@ -209,13 +239,12 @@ function renderCategoryChart(data) {
     options: {
       responsive: true,
       plugins: {
-        legend: {
-          position: "bottom"
-        }
+        legend: { position: "bottom" }
       }
     }
   });
 }
+
 
 
 function updateMonthlySummary() {
