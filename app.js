@@ -1,3 +1,5 @@
+// ✅ Budget Tracker with Edit Feature + Persistent Category Colors
+
 const balance = document.getElementById("balance");
 const income = document.getElementById("income");
 const expense = document.getElementById("expense");
@@ -12,17 +14,19 @@ const themeSelect = document.getElementById("themeSelect");
 const exportBtn = document.getElementById("exportBtn");
 const chartCanvas = document.getElementById("chart");
 const lineCanvas = document.getElementById("lineChart");
-
 const currencySelect = document.getElementById("currencySelect");
+const categoryCanvas = document.getElementById("categoryChart");
+
 let currency = localStorage.getItem("currency") || "PKR";
 currencySelect.value = currency;
 
-const categoryCanvas = document.getElementById("categoryChart");
-let categoryChart = null;
-
 let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+let dynamicCategoryColors = JSON.parse(localStorage.getItem("dynamicCategoryColors")) || {};
+
 let pieChart = null;
 let lineChart = null;
+let categoryChart = null;
+let editIndex = -1;
 
 function getTodayDate() {
   return new Date().toISOString().split("T")[0];
@@ -41,10 +45,13 @@ function renderTransactions() {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${txn.desc}</td>
-      <td>PKR ${txn.amount}</td>
+      <td>${currency} ${txn.amount}</td>
       <td>${txn.type}</td>
       <td>${txn.category || "-"}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteTransaction(${index})">Delete</button></td>
+      <td>
+        <button class="btn btn-sm btn-warning me-1" onclick="editTransaction(${index})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${index})">Delete</button>
+      </td>
     `;
     transactionList.appendChild(row);
 
@@ -53,7 +60,7 @@ function renderTransactions() {
     else totalExpense += txn.amount;
   });
 
-    income.textContent = `${currency} ${totalIncome}`;
+  income.textContent = `${currency} ${totalIncome}`;
   expense.textContent = `${currency} ${totalExpense}`;
   balance.textContent = `${currency} ${totalIncome - totalExpense}`;
 
@@ -67,14 +74,24 @@ function renderTransactions() {
 
   renderPieChart(totalIncome, totalExpense);
   renderLineChart(transactions);
-  updateMonthlySummary();
   renderCategoryChart(transactions);
+  updateMonthlySummary();
 }
 
 function deleteTransaction(index) {
   transactions.splice(index, 1);
   localStorage.setItem("transactions", JSON.stringify(transactions));
   renderTransactions();
+}
+
+function editTransaction(index) {
+  const txn = transactions[index];
+  descInput.value = txn.desc;
+  amountInput.value = txn.amount;
+  typeInput.value = txn.type;
+  categoryInput.value = txn.category;
+  editIndex = index;
+  document.getElementById("submitBtn").textContent = "Update";
 }
 
 transactionForm.addEventListener("submit", (e) => {
@@ -87,7 +104,14 @@ transactionForm.addEventListener("submit", (e) => {
 
   if (!desc || !amount || amount <= 0) return;
 
-  transactions.push({ desc, amount, type, category, date });
+  if (editIndex > -1) {
+    transactions[editIndex] = { desc, amount, type, category, date };
+    editIndex = -1;
+    document.getElementById("submitBtn").textContent = "Add";
+  } else {
+    transactions.push({ desc, amount, type, category, date });
+  }
+
   localStorage.setItem("transactions", JSON.stringify(transactions));
   transactionForm.reset();
   renderTransactions();
@@ -103,7 +127,6 @@ exportBtn.addEventListener("click", () => {
   transactions.forEach(txn => {
     csv += `"${txn.desc}",${txn.amount},${txn.type},"${txn.category}",${txn.date}\n`;
   });
-
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -115,7 +138,6 @@ categoryFilter.addEventListener("change", renderTransactions);
 
 function renderPieChart(incomeValue, expenseValue) {
   if (pieChart) pieChart.destroy();
-
   pieChart = new Chart(chartCanvas, {
     type: "doughnut",
     data: {
@@ -129,9 +151,7 @@ function renderPieChart(incomeValue, expenseValue) {
     options: {
       responsive: true,
       plugins: {
-        legend: {
-          position: "bottom"
-        }
+        legend: { position: "bottom" }
       }
     }
   });
@@ -139,19 +159,13 @@ function renderPieChart(incomeValue, expenseValue) {
 
 function renderLineChart(data) {
   if (lineChart) lineChart.destroy();
-
   const totalsByDate = {};
-
   data.forEach(txn => {
-    if (!totalsByDate[txn.date]) {
-      totalsByDate[txn.date] = 0;
-    }
+    if (!totalsByDate[txn.date]) totalsByDate[txn.date] = 0;
     totalsByDate[txn.date] += txn.type === "income" ? txn.amount : -txn.amount;
   });
-
   const sortedDates = Object.keys(totalsByDate).sort();
   const values = sortedDates.map(date => totalsByDate[date]);
-
   lineChart = new Chart(lineCanvas, {
     type: "line",
     data: {
@@ -168,15 +182,10 @@ function renderLineChart(data) {
     options: {
       responsive: true,
       plugins: {
-        legend: {
-          display: true,
-          position: "top"
-        }
+        legend: { display: true, position: "top" }
       },
       scales: {
-        y: {
-          beginAtZero: true
-        }
+        y: { beginAtZero: true }
       }
     }
   });
@@ -184,23 +193,6 @@ function renderLineChart(data) {
 
 function renderCategoryChart(data) {
   if (categoryChart) categoryChart.destroy();
-
-  const categoryTotals = {};
-  const categoryColors = {
-    "Uncategorized": "#adb5bd",
-    "Food": "#ff6b6b",
-    "Transport": "#4dabf7",
-    "Entertainment": "#f59f00",
-    "Health": "#51cf66",
-    "Shopping": "#845ef7"
-  };
-
-let dynamicCategoryColors = JSON.parse(localStorage.getItem("dynamicCategoryColors")) || {};
-
-function renderCategoryChart(data) {
-  if (categoryChart) categoryChart.destroy();
-
-  const categoryTotals = {};
   const baseColors = {
     "Uncategorized": "#adb5bd",
     "Food": "#ff6b6b",
@@ -210,11 +202,11 @@ function renderCategoryChart(data) {
     "Shopping": "#845ef7"
   };
 
+  const categoryTotals = {};
   data.forEach(txn => {
     if (txn.type === "expense") {
       categoryTotals[txn.category] = (categoryTotals[txn.category] || 0) + txn.amount;
       if (!baseColors[txn.category] && !dynamicCategoryColors[txn.category]) {
-
         dynamicCategoryColors[txn.category] = `hsl(${Math.random() * 360}, 70%, 60%)`;
         localStorage.setItem("dynamicCategoryColors", JSON.stringify(dynamicCategoryColors));
       }
@@ -225,26 +217,6 @@ function renderCategoryChart(data) {
   const values = Object.values(categoryTotals);
   const colors = labels.map(cat => baseColors[cat] || dynamicCategoryColors[cat]);
 
-  if (labels.length === 0) {
-    categoryChart = new Chart(categoryCanvas, {
-      type: "pie",
-      data: {
-        labels: ["No Expenses"],
-        datasets: [{
-          data: [1],
-          backgroundColor: ["#dee2e6"]
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "bottom" }
-        }
-      }
-    });
-    return;
-  }
-
   categoryChart = new Chart(categoryCanvas, {
     type: "pie",
     data: {
@@ -262,67 +234,13 @@ function renderCategoryChart(data) {
     }
   });
 }
-
-
-  data.forEach(txn => {
-    if (txn.type === "expense") {
-      categoryTotals[txn.category] = (categoryTotals[txn.category] || 0) + txn.amount;
-    }
-  });
-
-  const labels = Object.keys(categoryTotals);
-  const values = Object.values(categoryTotals);
-  const colors = labels.map(cat => categoryColors[cat] || `hsl(${Math.random() * 360}, 70%, 60%)`);
-
-  if (labels.length === 0) {
-    // No expenses — show empty chart
-    categoryChart = new Chart(categoryCanvas, {
-      type: "pie",
-      data: {
-        labels: ["No Expenses"],
-        datasets: [{
-          data: [1],
-          backgroundColor: ["#dee2e6"]
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "bottom" }
-        }
-      }
-    });
-    return;
-  }
-
-  categoryChart = new Chart(categoryCanvas, {
-    type: "pie",
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: colors
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: "bottom" }
-      }
-    }
-  });
-}
-
-
 
 function updateMonthlySummary() {
   const now = new Date();
   const month = now.getMonth();
   const year = now.getFullYear();
-
   let monthIncome = 0;
   let monthExpense = 0;
-
   transactions.forEach(txn => {
     const txnDate = new Date(txn.date);
     if (txnDate.getMonth() === month && txnDate.getFullYear() === year) {
@@ -330,10 +248,9 @@ function updateMonthlySummary() {
       else monthExpense += txn.amount;
     }
   });
-
   const monthBalance = monthIncome - monthExpense;
- document.getElementById("monthlySummary").textContent =
-  `This month's balance: ${currency} ${monthBalance} (Income: ${currency} ${monthIncome}, Expense: ${currency} ${monthExpense})`;
+  document.getElementById("monthlySummary").textContent =
+    `This month's balance: ${currency} ${monthBalance} (Income: ${currency} ${monthIncome}, Expense: ${currency} ${monthExpense})`;
 }
 
 currencySelect.addEventListener("change", () => {
